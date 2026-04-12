@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --page-background: #f7f7f5;
+  --surface: #ffffff;
+  --border: #d9ddd4;
+  --border-strong: #bfc5bb;
+  --text-primary: #171a17;
+  --text-secondary: #4f564e;
+  --text-muted: #667067;
+  --focus: #2f6fed;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--page-background);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--page-background);
+  color: var(--text-primary);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+code {
+  font-size: 0.94em;
+}
+
+.shell {
+  width: min(100%, 48rem);
+  margin: 0 auto;
+  padding: 2rem 1rem 3rem;
+}
+
+.hero {
+  margin-bottom: 1.25rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.intro {
+  max-width: 60ch;
+  margin: 0.75rem 0 0;
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.panel {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.demo-grid {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.field-group {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.field-group label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.field-group textarea {
+  min-height: 12rem;
+  resize: vertical;
+  padding: 0.75rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.field-group textarea:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: -1px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.button {
+  border: 1px solid var(--text-primary);
+  border-radius: 0;
+  padding: 0.625rem 0.9rem;
+  background: var(--text-primary);
+  color: var(--surface);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.hint,
+.status {
+  color: var(--text-secondary);
+  font-size: 0.9375rem;
+}
+
+.status[data-error="true"] {
+  color: #b42318;
+}
+
+.result {
+  overflow-wrap: anywhere;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  background: #fbfbfa;
+}
+
+.result strong {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.result code {
+  display: block;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 640px) {
+  .shell {
+    padding: 1rem;
+  }
+
+  .hero h1 {
+    font-size: 1.6rem;
+  }
+}
