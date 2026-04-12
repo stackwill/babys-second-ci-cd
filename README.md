@@ -52,7 +52,8 @@ Set these in GitHub under `Settings -> Secrets and variables -> Actions -> Varia
 - `CONTAINER_NAME`
   Example: `babys-second-ci-cd`
 - `DEPLOY_PORT`
-  Example: `22`
+  External SSH port on the VM
+  Example: `42125`
 
 ### Repository secrets
 
