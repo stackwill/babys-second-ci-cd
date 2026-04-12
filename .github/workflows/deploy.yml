@@ -22,6 +22,7 @@ jobs:
       APP_PORT: ${{ vars.APP_PORT || '3000' }}
       CONTAINER_NAME: ${{ vars.CONTAINER_NAME || 'babys-second-ci-cd' }}
       DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+      REMOTE_TMP_DIR: /tmp/babys-second-ci-cd-${{ github.run_id }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
@@ -60,10 +61,14 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ env.DEPLOY_PORT }}
-          envs: APP_DIR
-          script: mkdir -p "${APP_DIR}"
+          envs: APP_DIR,REMOTE_TMP_DIR
+          script: |
+            mkdir -p "${APP_DIR}"
+            rm -rf "${REMOTE_TMP_DIR}"
+            mkdir -p "${REMOTE_TMP_DIR}"
         env:
           APP_DIR: ${{ env.APP_DIR }}
+          REMOTE_TMP_DIR: ${{ env.REMOTE_TMP_DIR }}
 
       - name: Copy compose file to server
         uses: appleboy/scp-action@v1
@@ -73,7 +78,7 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ env.DEPLOY_PORT }}
           source: docker-compose.yml
-          target: ${{ env.APP_DIR }}
+          target: ${{ env.REMOTE_TMP_DIR }}
 
       - name: Pull and restart container on server
         uses: appleboy/ssh-action@v1.2.2
@@ -81,6 +86,7 @@ jobs:
           APP_DIR: ${{ env.APP_DIR }}
           APP_PORT: ${{ env.APP_PORT }}
           CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
+          REMOTE_TMP_DIR: ${{ env.REMOTE_TMP_DIR }}
           IMAGE_REPOSITORY: ${{ steps.image.outputs.repository }}
           IMAGE_TAG: sha-${{ github.sha }}
           GHCR_PULL_USERNAME: ${{ secrets.GHCR_PULL_USERNAME }}
@@ -90,9 +96,11 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ env.DEPLOY_PORT }}
-          envs: APP_DIR,APP_PORT,CONTAINER_NAME,IMAGE_REPOSITORY,IMAGE_TAG,GHCR_PULL_USERNAME,GHCR_PULL_TOKEN
+          envs: APP_DIR,APP_PORT,CONTAINER_NAME,REMOTE_TMP_DIR,IMAGE_REPOSITORY,IMAGE_TAG,GHCR_PULL_USERNAME,GHCR_PULL_TOKEN
           script: |
             set -eu
+            mv "$REMOTE_TMP_DIR/docker-compose.yml" "$APP_DIR/docker-compose.yml"
+            rm -rf "$REMOTE_TMP_DIR"
             cd "$APP_DIR"
 
             cat > .env <<EOF
