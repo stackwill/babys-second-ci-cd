@@ -1,0 +1,111 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      APP_DIR: ${{ vars.DEPLOY_PATH || '/opt/babys-second-ci-cd' }}
+      APP_PORT: ${{ vars.APP_PORT || '3000' }}
+      CONTAINER_NAME: ${{ vars.CONTAINER_NAME || 'babys-second-ci-cd' }}
+      DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Compute image repository
+        id: image
+        run: echo "repository=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ steps.image.outputs.repository }}:latest
+            ${{ steps.image.outputs.repository }}:sha-${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Ensure remote app directory exists
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ env.DEPLOY_PORT }}
+          envs: APP_DIR
+          script: mkdir -p "${APP_DIR}"
+        env:
+          APP_DIR: ${{ env.APP_DIR }}
+
+      - name: Copy compose file to server
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ env.DEPLOY_PORT }}
+          source: docker-compose.yml
+          target: ${{ env.APP_DIR }}
+
+      - name: Pull and restart container on server
+        uses: appleboy/ssh-action@v1.2.2
+        env:
+          APP_DIR: ${{ env.APP_DIR }}
+          APP_PORT: ${{ env.APP_PORT }}
+          CONTAINER_NAME: ${{ env.CONTAINER_NAME }}
+          IMAGE_REPOSITORY: ${{ steps.image.outputs.repository }}
+          IMAGE_TAG: sha-${{ github.sha }}
+          GHCR_PULL_USERNAME: ${{ secrets.GHCR_PULL_USERNAME }}
+          GHCR_PULL_TOKEN: ${{ secrets.GHCR_PULL_TOKEN }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ env.DEPLOY_PORT }}
+          envs: APP_DIR,APP_PORT,CONTAINER_NAME,IMAGE_REPOSITORY,IMAGE_TAG,GHCR_PULL_USERNAME,GHCR_PULL_TOKEN
+          script: |
+            set -eu
+            cd "$APP_DIR"
+
+            cat > .env <<EOF
+            IMAGE_REPOSITORY=$IMAGE_REPOSITORY
+            IMAGE_TAG=$IMAGE_TAG
+            APP_PORT=$APP_PORT
+            CONTAINER_NAME=$CONTAINER_NAME
+            EOF
+
+            if [ -n "${GHCR_PULL_USERNAME}" ] && [ -n "${GHCR_PULL_TOKEN}" ]; then
+              echo "$GHCR_PULL_TOKEN" | docker login ghcr.io -u "$GHCR_PULL_USERNAME" --password-stdin
+            fi
+
+            docker compose pull
+            docker compose up -d --force-recreate --remove-orphans
+            docker image prune -f

@@ -1,0 +1,11 @@
+services:
+  web:
+    image: ${IMAGE_REPOSITORY}:${IMAGE_TAG:-latest}
+    container_name: ${CONTAINER_NAME:-babys-second-ci-cd}
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
