@@ -1,4 +1,5 @@
 import { Base64Demo } from "./ui/base64-demo";
+import { CarShowcase } from "./ui/car-showcase";
 
 export default function Home() {
   return (
@@ -11,6 +12,7 @@ export default function Home() {
           encodes it on the server with <code>Buffer</code> and returns JSON.
         </p>
       </section>
+      <CarShowcase />
       <Base64Demo />
     </main>
   );

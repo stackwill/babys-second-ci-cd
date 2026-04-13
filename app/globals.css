@@ -70,6 +70,65 @@ code {
   line-height: 1.5;
 }
 
+.showcase {
+  margin: 0 0 1.5rem;
+}
+
+.showcase-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.showcase-label {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.showcase-copy {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  text-align: right;
+}
+
+.showcase-stage {
+  position: relative;
+  height: clamp(23rem, 62vw, 36rem);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.95), rgba(243, 244, 239, 0.82) 46%, rgba(229, 232, 225, 0.96) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(226, 230, 221, 0.92));
+}
+
+.showcase-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.86), transparent 26%, transparent 74%, rgba(255, 255, 255, 0.55)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 24%, transparent 80%, rgba(255, 255, 255, 0.5));
+  pointer-events: none;
+  z-index: 1;
+}
+
+.showcase-stage canvas {
+  display: block;
+}
+
+.showcase-loading {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
 .panel {
   padding: 1rem;
   border: 1px solid var(--border);
@@ -162,6 +221,15 @@ code {
 @media (max-width: 640px) {
   .shell {
     padding: 1rem;
+  }
+
+  .showcase-header {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  .showcase-copy {
+    text-align: left;
   }
 
   .hero h1 {
